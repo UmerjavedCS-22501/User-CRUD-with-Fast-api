@@ -1,6 +1,6 @@
-from fastapi import FastAPI,Path,HTTPException
-from pydantic import BaseModel,Field
-from typing import Optional,Annotated
+from fastapi import FastAPI, Path, HTTPException
+from pydantic import BaseModel, Field
+from typing import Optional, Annotated
 from fastapi.responses import JSONResponse
 import json
 import os
@@ -19,19 +19,21 @@ def load_data():
             return []
         return json.loads(content)
 
-
-
+# save our json file
+def save_data(data):
+    with open(File_name, "w") as f:
+        json.dump(data, f, indent=4)
 
 # make pydantic model for validation
 
 class user_data(BaseModel):
-    title:Annotated[str,Field(...,description="enter the title that is str")]
-    description: Annotated[str,Field(...,description="enter the desceiption")]
+    title: Annotated[str, Field(..., description="enter the title that is str")]
+    description: Annotated[str, Field(..., description="enter the description")]
 
 
 class user_update(BaseModel):
-    title:Optional[str]
-    description:Optional[str]
+    title: Optional[str]
+    description: Optional[str]
 
 # home route
 
@@ -44,7 +46,7 @@ def home():
 @app.post("/add_task")
 def add_task(task: user_data):
     tasks = load_data()                 # list
-    tasks.append(task.model_dump())     # add new task
+    tasks.append(task.dict())     # add new task
     save_data(tasks)
 
     return JSONResponse(
@@ -53,41 +55,41 @@ def add_task(task: user_data):
     )
 # route to get or see task
 
-@ app.get('/Get_Task/{title}')
-def see_task(title:str=Path(...,description='enter your title')):
-    tasks=load_data()
+@app.get('/Get_Task/{title}')
+def see_task(title: str = Path(..., description='enter your title')):
+    tasks = load_data()
     for task in tasks:
-        if task["title"]==title:
+        if task["title"] == title:
             return task
-        
-        
-    raise HTTPException(status_code=400,detail="task not found")
+    raise HTTPException(status_code=400, detail="task not found")
 
-#route to update tast by title
+# route to update task by title
 
 @app.put('/update_task/{title}')
-
-def update_task(user:user_update):
-    data=load_data()
+def update_task(title: str, user: user_update):
+    data = load_data()
     for task in data:
-        if task['title']==user.title:
-            task['description']=user.description
+        if task['title'] == title:
+            if user.title:
+                task['title'] = user.title
+            if user.description:
+                task['description'] = user.description
             save_data(data)
 
             return JSONResponse(
                 status_code=200,
                 content={"message": "Task updated successfully"}
             )
-    raise HTTPException(status_code=404,detail="task not found correct your litle")
+    raise HTTPException(status_code=404, detail="task not found correct your title")
 
-#route to del task by title
+# route to delete task by title
 
 @app.delete('/delete_task/{title}')
-def delete(title:str):
-    data= load_data()
-    for index,task in enumerate(data):
-        if task["title"]==title:
+def delete_task(title: str):
+    data = load_data()
+    for index, task in enumerate(data):
+        if task["title"] == title:
             del data[index]
             save_data(data)
-            return JSONResponse(status_code=200,content={'message':'task deleted'})
-    raise  HTTPException(status_code=400,detail="task not found")
+            return JSONResponse(status_code=200, content={'message': 'task deleted'})
+    raise HTTPException(status_code=400, detail="task not found")
