@@ -20,9 +20,7 @@ def load_data():
         return json.loads(content)
 
 
-def save_data(tasks):
-    with open(File_name, "w") as f:
-        json.dump(tasks, f)
+
 
 # make pydantic model for validation
 
