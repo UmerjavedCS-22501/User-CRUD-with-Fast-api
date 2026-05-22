@@ -19,10 +19,7 @@ def load_data():
             return []
         return json.loads(content)
 
-# save our json file
-def save_data(data):
-    with open(File_name, "w") as f:
-        json.dump(data, f, indent=4)
+
 
 # make pydantic model for validation
 
